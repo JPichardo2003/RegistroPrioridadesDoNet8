@@ -1,0 +1,148 @@
+﻿@page "/RegistroPrioridades";
+@page "/RegistroPrioridades/{PrioridadId:int}";
+@rendermode InteractiveServer
+@inject PrioridadesBLL prioridadesBLL;
+@inject NotificationService notificationService;
+<RadzenNotification />
+<EditForm Model="prioridades" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="card">
+        <div class="card-header">
+            <h1>Registro Prioridad</h1>
+        </div>
+        <div class="card-body">
+            <label>ID:</label>
+            <div class="input-group">
+                <InputNumber @bind-Value="prioridades.PrioridadId" class="id-input"></InputNumber>
+                <button type="button" class="btn btn-primary bi bi-search" @onclick="Buscar"></button>
+            </div>
+            <div>
+                <label>Descripci&oacute;n:</label>
+                <InputText @bind-Value="prioridades.Descripción" class="form-control"></InputText>
+                <ValidationMessage For="@(() => prioridades.Descripción)" />
+                @if (descripciónExistente)
+                {
+                    <p class="text-danger">Ya existe una Prioridad con esta descripción.</p>
+                }
+            </div>
+            <div>
+                <label>Dias compromiso:</label>
+                <InputNumber @bind-Value="prioridades.DiasCompromiso" class="form-control"></InputNumber>
+                <ValidationMessage For="@(() => prioridades.DiasCompromiso)" />
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="button" class="btn btn-primary" @onclick="Nuevo">Nuevo <i class="bi bi-file-earmark-diff-fill" /></button>
+            <button type="submit" class="btn btn-success">Guardar <i class="bi bi-floppy-fill" /></button>
+            <button type="button" class="btn btn-danger" @onclick="Eliminar">Eliminar <i class="bi bi-trash-fill" /></button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public int PrioridadId { get; set; }
+
+    public Prioridades prioridades = new Prioridades();
+    private bool descripciónExistente = false;
+
+    protected override void OnInitialized()
+    {
+        if (PrioridadId > 0)
+        {
+            prioridades.PrioridadId = PrioridadId;
+            Buscar();
+        }
+    }
+    public void Buscar()
+    {
+        descripciónExistente = false;
+        var prioridadEncontrada = prioridadesBLL.Buscar(prioridades.PrioridadId);
+
+        if (prioridadEncontrada != null)
+        {
+            this.prioridades = prioridadEncontrada;
+        }
+        else
+        {
+            var mensaje = new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Summary = "No encontrado",
+                Detail = "Prioridad no encontrada",
+                Duration = 4_000
+            };
+            notificationService.Notify(mensaje);
+            this.Nuevo();
+        }
+    }
+    public bool Validar()
+    {
+        descripciónExistente = (prioridadesBLL.Listar(p => p.Descripción == prioridades.Descripción 
+        && p.PrioridadId != prioridades.PrioridadId).Any());
+
+        return descripciónExistente;
+    }
+    public void Nuevo()
+    {
+        this.prioridades = new Prioridades();
+        descripciónExistente = false;
+    }
+    public void Guardar()
+    {
+        if(Validar())
+        {
+            var mensaje = new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error",
+                    Detail = "Descripción ya Existe",
+                    Duration = 4_000
+                };
+            notificationService.Notify(mensaje);
+            return;
+        }
+        var guardo = prioridadesBLL.Guardar(this.prioridades);
+        if (guardo)
+        {
+            var mensaje = new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Guardado",
+                Detail = "Prioridad Guardada",
+                Duration = 4_000
+            };
+            notificationService.Notify(mensaje);
+            Nuevo();
+        }
+    }
+    public void Eliminar()
+    {
+        if (prioridadesBLL.Existe(prioridades.PrioridadId) && prioridadesBLL.Eliminar(this.prioridades))
+        {
+            var mensaje = new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Eliminado",
+                Detail = "Prioridad Eliminada",
+                Duration = 4_000
+            };
+            notificationService.Notify(mensaje);
+            this.Nuevo();
+        }
+        else
+        {
+            var mensaje = new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Error",
+                Detail = "No se pudo Eliminar",
+                Duration = 4_000
+            };
+            notificationService.Notify(mensaje);
+            return;
+        }
+    }
+}
+
