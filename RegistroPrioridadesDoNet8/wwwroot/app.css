@@ -1,3 +1,15 @@
+.id-input {
+    width: 150px;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+}
+
+.filter-input {
+    width: 300px;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+}
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
