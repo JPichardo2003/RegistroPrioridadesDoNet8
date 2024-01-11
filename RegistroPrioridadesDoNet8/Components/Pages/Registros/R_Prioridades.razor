@@ -79,7 +79,7 @@
     }
     public bool Validar()
     {
-        descripciónExistente = (prioridadesBLL.Listar(p => p.Descripción == prioridades.Descripción 
+        descripciónExistente = (prioridadesBLL.Listar(p => p.Descripción!.ToLower() == prioridades.Descripción!.ToLower()
         && p.PrioridadId != prioridades.PrioridadId).Any());
 
         return descripciónExistente;
