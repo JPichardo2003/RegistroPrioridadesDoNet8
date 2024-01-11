@@ -1,10 +1,20 @@
+using Microsoft.EntityFrameworkCore;
+using RegistroPrioridadesDoNet8.BLL;
 using RegistroPrioridadesDoNet8.Components;
+using RegistroPrioridadesDoNet8.DAL;
+using RegistroPrioridadesDoNet8.Models;
+using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+var ConStr = builder.Configuration.GetConnectionString("ConStr");
+builder.Services.AddDbContext<Context>(options => options.UseSqlite(ConStr));
+builder.Services.AddScoped<PrioridadesBLL>();
+builder.Services.AddScoped<NotificationService>();
 
 var app = builder.Build();
 
